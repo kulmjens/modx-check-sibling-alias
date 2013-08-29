@@ -1,0 +1,43 @@
+//<?php
+/*
+ *	name: CheckSiblinAlias
+ *  description: <strong>0.1</strong> Checks whether a sibling in a container has the same alias as the ressource beeing edited
+ *	version: 0.1
+ *	@params:
+ *	@events: OnDocFormSave
+ */
+ 
+global $alias,$parent,$pagetitle,$content;
+
+$e = &$modx->Event;
+$id = $e->params['id'];
+#$mode = $e->params['mode'];
+$tbl = $modx->getFullTableName('site_content');
+
+switch($e->name) {
+	case 'OnDocFormRender':
+		if($id > 0) {
+			
+			$parent = $content['parent'];
+			$alias = $content['alias'];
+			$sql = "SELECT	id,pagetitle
+				FROM	$tbl
+				WHERE	parent = $parent && alias = '$alias' && id <> $id";
+			$res = $modx->db->query($sql);
+			if($modx->db->getRecordCount($res) > 0) {
+				$modx->webAlert("Duplicate alias\n\nAnother ressource in the same container is using this alias. Please use unique aliases in a container!");		
+			}
+		}
+		break;
+	case 'OnDocFormSave':
+		$sql = "SELECT	id,pagetitle
+			FROM	$tbl
+			WHERE	parent = $parent && alias = '$alias' && id <> $id";
+		$res = $modx->db->query($sql);
+		if($modx->db->getRecordCount($res) > 0) {
+			$_POST['stay'] = 2;
+		}
+		break;
+	
+}
+//?>
